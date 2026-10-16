@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace CatAndMouseGame
@@ -65,8 +65,30 @@ namespace CatAndMouseGame
         public void Run()
         {
             File.WriteAllText(OutFile, "Cat and Mouse\n\nCat   Mouse Distance\n-------------------\n");
+
+            if (!File.Exists(InputFile))
+            {
+                Console.WriteLine($"Ошибка: Файл {InputFile} не найден!");
+                File.AppendAllText(OutFile, $"\n[ERROR]: File {InputFile} not found!");
+                return;
+            }
+
             string[] lines = File.ReadAllLines(InputFile);
-            size = int.Parse(lines[0].Trim());
+            if (lines.Length == 0)
+            {
+                Console.WriteLine($"Ошибка: Файл {InputFile} пуст!");
+                File.AppendAllText(OutFile, "\n[ERROR]: File is empty!");
+                return;
+            }
+
+            if (!int.TryParse(lines[0].Trim(), out int parsedSize) || parsedSize <= 0)
+            {
+                Console.WriteLine("\nОшибка: Первая строка файла должна содержать размер поля!");
+                File.AppendAllText(OutFile, "\n[ERROR]: Game failed — missing or invalid board size in the first line.");
+                return;
+            }
+
+            this.size = parsedSize;
 
             foreach (string line in lines)
             {
@@ -96,6 +118,13 @@ namespace CatAndMouseGame
             }
 
             state = GameState.End;
+
+            if (cat.state == State.NotInGame || mouse.state == State.NotInGame)
+            {
+                Console.WriteLine("\nОшибка: Игра невозможна! В файле отсутствует информация об одном из игроков.");
+                File.AppendAllText(OutFile, "\n[ERROR]: Game failed — missing player position data.");
+                return;
+            }
 
             string footer = "-------------------\n\n\nDistance traveled: Mouse Cat\n" +
                            $" {mouse.distanceTraveled,-14} {cat.distanceTraveled}\n\n" +
@@ -128,6 +157,22 @@ namespace CatAndMouseGame
     {
         static void Main(string[] args)
         {
+            Console.Write("Введите номер теста (1, 2, 3 или 4): ");
+            string choice = Console.ReadLine()?.Trim();
+
+            if (choice != "1" && choice != "2" && choice != "3" && choice != "4")
+            {
+                Console.WriteLine("\nОшибка: Введён неверный номер теста! Допустимые значения: 1, 2, 3 или 4.");
+                return;
+            }
+
+            Game.InputFile = $"{choice}.ChaseData.txt";
+            Game.OutFile = $"{choice}.PursuitLog.txt";
+
+            Game game = new Game();
+            game.Run();
+
+            Console.WriteLine($"Обработка завершена. Результаты сохранены в {Game.OutFile}");
         }
     }
 }
