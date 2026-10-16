@@ -22,6 +22,20 @@ namespace CatAndMouseGame
             this.name = name;
             this.location = -1;
         }
+
+        public void Move(int steps, int boardSize)
+        {
+            if (state == State.NotInGame)
+            {
+                location = ((steps - 1) % boardSize + boardSize) % boardSize + 1;
+                state = State.Playing;
+            }
+            else if (state == State.Playing && steps != 0)
+            {
+                distanceTraveled += Math.Abs(steps);
+                location = ((location - 1 + steps) % boardSize + boardSize) % boardSize + 1;
+            }
+        }
     }
 
     public enum GameState
